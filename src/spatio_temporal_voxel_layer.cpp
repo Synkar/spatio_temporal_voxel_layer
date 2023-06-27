@@ -554,9 +554,15 @@ void SpatioTemporalVoxelLayer::deactivate(void)
 void SpatioTemporalVoxelLayer::reset(void)
 /*****************************************************************************/
 {
+  ROS_DEBUG("SpatioTemporalVoxelLayer::reset: Trying to lock _voxel_grid_lock");
   boost::recursive_mutex::scoped_lock lock(_voxel_grid_lock);
+  ROS_DEBUG("SpatioTemporalVoxelLayer::reset: Locked _voxel_grid_lock");
+
+  ROS_DEBUG("SpatioTemporalVoxelLayer::reset: Calling for Costmap2D::resetMaps()");
   // reset layer
   Costmap2D::resetMaps();
+  ROS_DEBUG("SpatioTemporalVoxelLayer::reset: Finished Costmap2D::resetMaps()");
+
   this->ResetGrid();
   current_ = true;
   observation_buffers_iter it = _observation_buffers.begin();
@@ -605,7 +611,9 @@ void SpatioTemporalVoxelLayer::DynamicReconfigureCallback( \
                         SpatioTemporalVoxelLayerConfig& config, uint32_t level)
 /*****************************************************************************/
 {
+  ROS_DEBUG("SpatioTemporalVoxelLayer::DynamicReconfigureCallback: Trying to lock _voxel_grid_lock");
   boost::recursive_mutex::scoped_lock lock(_voxel_grid_lock);
+  ROS_DEBUG("SpatioTemporalVoxelLayer::DynamicReconfigureCallback: Locked _voxel_grid_lock");
 
   _enabled = config.enabled;
   _combination_method = config.combination_method;
@@ -685,8 +693,10 @@ void SpatioTemporalVoxelLayer::UpdateROSCostmap( \
                         std::unordered_set<volume_grid::occupany_cell>& cleared_cells)
 /*****************************************************************************/
 {
+  ROS_DEBUG("SpatioTemporalVoxelLayer::UpdateROSCostmap: calling for Costmap2D::resetMaps()");
   // grabs map of occupied cells from grid and adds to costmap_
   Costmap2D::resetMaps();
+  ROS_DEBUG("SpatioTemporalVoxelLayer::UpdateROSCostmap: Costmap2D::resetMaps() finished");
 
   std::unordered_map<volume_grid::occupany_cell, uint>::iterator it;
   for (it = _voxel_grid->GetFlattenedCostmap()->begin();
@@ -720,7 +730,9 @@ void SpatioTemporalVoxelLayer::updateBounds( \
     return;
   }
 
+  ROS_DEBUG("SpatioTemporalVoxelLayer::updateBounds: Trying to lock _voxel_grid_lock");
   boost::recursive_mutex::scoped_lock lock(_voxel_grid_lock);
+  ROS_DEBUG("SpatioTemporalVoxelLayer::updateBounds: Locked _voxel_grid_lock");
 
   // Steve's Note June 22, 2018
   // I dislike this necessity, I can't remove the master grid's knowledge about
@@ -766,8 +778,10 @@ void SpatioTemporalVoxelLayer::updateBounds( \
   // mark observations
   _voxel_grid->Mark(marking_observations);
 
+  ROS_DEBUG("SpatioTemporalVoxelLayer::updateBounds: Calling for UpdateROSCostmap");
   // update the ROS Layered Costmap
   UpdateROSCostmap(min_x, min_y, max_x, max_y, cleared_cells);
+  ROS_DEBUG("SpatioTemporalVoxelLayer::updateBounds: UpdateROSCostmap finished");
 
   // publish point cloud in navigation mode
   if (_publish_voxels && !_mapping_mode)
@@ -790,7 +804,10 @@ bool SpatioTemporalVoxelLayer::SaveGridCallback( \
                          spatio_temporal_voxel_layer::SaveGrid::Response& resp)
 /*****************************************************************************/
 {
+  ROS_DEBUG("SpatioTemporalVoxelLayer::SaveGridCallback: Trying to lock _voxel_grid_lock");
   boost::recursive_mutex::scoped_lock lock(_voxel_grid_lock);
+  ROS_DEBUG("SpatioTemporalVoxelLayer::SaveGridCallback: Locked _voxel_grid_lock");
+  
   double map_size_bytes;
 
   if( _voxel_grid->SaveGrid(req.file_name.data, map_size_bytes) )
